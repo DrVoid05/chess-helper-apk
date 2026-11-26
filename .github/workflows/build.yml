@@ -36,7 +36,7 @@ jobs:
           rm -rf "$SDK_ROOT/cmdline-tools/latest"
           mv /tmp/cmdtools_extracted/cmdline-tools "$SDK_ROOT/cmdline-tools/latest"
           ln -sf "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$SDK_ROOT/tools/bin/sdkmanager"
-          yes y | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
+          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
 
       - name: Download Stockfish Android arm64
         run: |
@@ -57,6 +57,8 @@ jobs:
       - name: Build APK with Buildozer
         env:
           ANDROID_ACCEPT_LICENSES: "yes"
+          ANDROID_HOME: "/home/runner/.buildozer/android/platform/android-sdk"
+          ANDROID_SDK_ROOT: "/home/runner/.buildozer/android/platform/android-sdk"
         run: buildozer android debug
 
       - name: Upload APK
