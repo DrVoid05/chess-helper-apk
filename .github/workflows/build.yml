@@ -17,10 +17,13 @@ jobs:
           python-version: '3.10'
 
       - name: Install Buildozer dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          pip install --upgrade pip buildozer cython==0.29.36
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 update
+          sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -y --no-install-recommends build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          pip install --upgrade pip wheel setuptools
+          pip install buildozer cython==0.29.36
 
       - name: Download Stockfish Android arm64
         run: |
