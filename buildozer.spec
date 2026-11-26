@@ -1,4 +1,4 @@
-﻿[app]
+[app]
 title = Chess Helper
 package.name = chesshelper
 package.domain = org.chesshelper
