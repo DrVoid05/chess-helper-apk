@@ -35,7 +35,12 @@ jobs:
           fi
 
       - name: Build APK with Buildozer
-        run: yes | buildozer android debug
+        env:
+          ANDROID_ACCEPT_LICENSES: "yes"
+        run: |
+          yes "" | head -n 200 | buildozer android debug || true
+          ls -la bin/ || true
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
