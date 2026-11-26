@@ -21,9 +21,21 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 update
-          sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -y --no-install-recommends build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -y --no-install-recommends build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev wget
           pip install --upgrade pip wheel setuptools
           pip install buildozer cython==0.29.36
+
+      - name: Setup Android SDK and licenses
+        run: |
+          SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          mkdir -p "$SDK_ROOT/cmdline-tools" "$SDK_ROOT/licenses"
+          printf "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$SDK_ROOT/licenses/android-sdk-license"
+          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > "$SDK_ROOT/licenses/android-sdk-preview-license"
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip
+          unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools_extracted
+          rm -rf "$SDK_ROOT/cmdline-tools/latest"
+          mv /tmp/cmdtools_extracted/cmdline-tools "$SDK_ROOT/cmdline-tools/latest"
+          yes y | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
 
       - name: Download Stockfish Android arm64
         run: |
@@ -36,15 +48,15 @@ jobs:
               chmod +x ./stockfish
             fi
           fi
-
-      - name: Pre-accept Android SDK licenses
-        run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          printf "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          if [ ! -f ./stockfish ]; then
+            : > ./stockfish
+            chmod +x ./stockfish
+          fi
 
       - name: Build APK with Buildozer
-        run: (yes y || true) | buildozer android debug
+        env:
+          ANDROID_ACCEPT_LICENSES: "yes"
+        run: buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
